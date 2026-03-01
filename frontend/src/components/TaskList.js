@@ -42,10 +42,13 @@ const TaskList = () => {
 
   const fetchTags = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/tags/');
-      setTags(response.data);
+      const response = await axios.get('http://localhost:8000/api/tasks/tags/');
+      // Handle both array response and object with results
+      const tagsData = Array.isArray(response.data) ? response.data : (response.data.results || []);
+      setTags(tagsData);
     } catch (error) {
       console.error('Failed to load tags');
+      setTags([]);
     }
   };
 

@@ -48,8 +48,11 @@ const TaskForm = () => {
         axios.get('http://localhost:8000/api/tasks/categories/'),
         axios.get('http://localhost:8000/api/tasks/tags/'),
       ]);
-      setCategories(categoriesRes.data);
-      setTags(tagsRes.data);
+      // Handle both array response and object with results
+      const categoriesData = Array.isArray(categoriesRes.data) ? categoriesRes.data : (categoriesRes.data.results || []);
+      const tagsData = Array.isArray(tagsRes.data) ? tagsRes.data : (tagsRes.data.results || []);
+      setCategories(categoriesData);
+      setTags(tagsData);
     } catch (error) {
       setError('Failed to load categories and tags');
     }
