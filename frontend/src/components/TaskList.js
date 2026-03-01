@@ -6,24 +6,32 @@ import '../App.css';
 
 const TaskList = () => {
   const [tasks, setTasks] = useState([]);
-  const [filteredTasks, setFilteredTasks] = useState([]);
+  const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
+  const [tagFilter, setTagFilter] = useState('');
 
   useEffect(() => {
+    fetchTags();
     fetchTasks();
   }, []);
 
   useEffect(() => {
-    filterTasks();
-  }, [tasks, searchTerm, statusFilter, priorityFilter]);
+    fetchTasks();
+  }, [searchTerm, statusFilter, priorityFilter, tagFilter]);
 
   const fetchTasks = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/tasks/');
+      const params = {};
+      if (searchTerm) params.search = searchTerm;
+      if (statusFilter) params.status = statusFilter;
+      if (priorityFilter) params.priority = priorityFilter;
+      if (tagFilter) params.tags = tagFilter;
+
+      const response = await axios.get('http://localhost:8000/api/tasks/', { params });
       setTasks(response.data);
     } catch (error) {
       setError('Failed to load tasks');
@@ -32,31 +40,16 @@ const TaskList = () => {
     }
   };
 
-  const filterTasks = () => {
-    if (!Array.isArray(tasks)) {
-      setFilteredTasks([]);
-      return;
+  const fetchTags = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/tags/');
+      setTags(response.data);
+    } catch (error) {
+      console.error('Failed to load tags');
     }
-
-    let filtered = [...tasks];
-
-    if (searchTerm) {
-      filtered = filtered.filter(task =>
-        (task && task.title && task.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (task && task.description && task.description.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-
-    if (statusFilter) {
-      filtered = filtered.filter(task => task && task.status === statusFilter);
-    }
-
-    if (priorityFilter) {
-      filtered = filtered.filter(task => task && task.priority === priorityFilter);
-    }
-
-    setFilteredTasks(filtered);
   };
+
+
 
   const deleteTask = async (id) => {
     if (window.confirm('Are you sure you want to delete this task?')) {
@@ -116,7 +109,7 @@ const TaskList = () => {
       <Card className="mb-4 fade-in">
         <Card.Body>
           <Row>
-            <Col md={4}>
+            <Col md={3}>
               <InputGroup>
                 <InputGroup.Text>🔍</InputGroup.Text>
                 <Form.Control
@@ -127,7 +120,7 @@ const TaskList = () => {
                 />
               </InputGroup>
             </Col>
-            <Col md={4}>
+            <Col md={3}>
               <Form.Select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -138,7 +131,7 @@ const TaskList = () => {
                 <option value="completed">✅ Completed</option>
               </Form.Select>
             </Col>
-            <Col md={4}>
+            <Col md={3}>
               <Form.Select
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
@@ -149,13 +142,24 @@ const TaskList = () => {
                 <option value="high">🔴 High</option>
               </Form.Select>
             </Col>
+            <Col md={3}>
+              <Form.Select
+                value={tagFilter}
+                onChange={(e) => setTagFilter(e.target.value)}
+              >
+                <option value="">All Tags</option>
+                {tags.map(tag => (
+                  <option key={tag.id} value={tag.name}>🏷️ {tag.name}</option>
+                ))}
+              </Form.Select>
+            </Col>
           </Row>
         </Card.Body>
       </Card>
 
       {/* Task List */}
       <Row>
-        {filteredTasks.length === 0 ? (
+        {tasks.length === 0 ? (
           <Col>
             <Card className="text-center fade-in">
               <Card.Body>
@@ -171,7 +175,7 @@ const TaskList = () => {
             </Card>
           </Col>
         ) : (
-          filteredTasks.map(task => (
+          tasks.map(task => (
             <Col md={6} lg={4} key={task.id} className="mb-4">
               <Card className={`task-card ${task.priority} fade-in`}>
                 <Card.Body>

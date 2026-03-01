@@ -22,6 +22,7 @@
 - [x] Integrate API calls with axios for CRUD operations
 - [x] Style components with Bootstrap for responsive design
 - [x] Add features: task filtering, search, notifications display
+- [x] Implement advanced task filtering & search with priorities, status tags, and due dates
 
 ## Integration and Testing
 - [ ] Test backend API endpoints with Postman/Insomnia
